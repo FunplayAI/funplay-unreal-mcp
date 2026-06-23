@@ -6,7 +6,6 @@ stdio JSON-RPC to this editor's local HTTP server."""
 
 import json
 import os
-import re
 import sys
 
 from . import constants
@@ -149,14 +148,29 @@ def _write_toml(path, endpoint, token):
     if os.path.isfile(path):
         with open(path, "r", encoding="utf-8") as fh:
             existing = fh.read()
-    pattern = re.compile(
-        r'\[mcp_servers\."%s"\].*?(?=\n\[[^\n]*\]\n|\Z)' % re.escape(SERVER_KEY),
-        re.DOTALL,
-    )
-    if pattern.search(existing):
-        merged = pattern.sub(section + "\n", existing)
-    else:
+
+    lines = existing.splitlines()
+    header = '[mcp_servers."%s"]' % SERVER_KEY
+    child_prefix = '[mcp_servers."%s".' % SERVER_KEY
+    start = None
+    end = len(lines)
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if start is None:
+            if stripped == header:
+                start = index
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            if stripped != header and not stripped.startswith(child_prefix):
+                end = index
+                break
+
+    if start is None:
         merged = existing.rstrip()
         merged = (merged + "\n\n" + section + "\n") if merged else (section + "\n")
+    else:
+        replacement = section.splitlines()
+        merged_lines = lines[:start] + replacement + lines[end:]
+        merged = "\n".join(merged_lines).rstrip() + "\n"
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(merged)

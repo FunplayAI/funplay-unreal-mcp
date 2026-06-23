@@ -105,8 +105,8 @@ Ask your assistant to:
   packaged games.
 - **Loopback only.** It binds `127.0.0.1` and rejects non-loopback Origins; POST
   requests require the per-project auth token.
-- **Default `core` profile.** A focused 25-tool set is exposed by default; switch
-  to `full` (62 tools) in the settings file when you want everything.
+- **Default `core` profile.** A focused 32-tool set is exposed by default; switch
+  to `full` (97 tools) in the settings file when you want everything.
 - **`execute_python` safety checks** are on by default (a filesystem/process
   denylist); pass `safety_checks=false` to override per call.
 - All `unreal` API work is marshalled onto the game thread, so the editor never
