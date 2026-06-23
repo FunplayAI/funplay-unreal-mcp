@@ -1,16 +1,12 @@
 # Changelog
 
-All notable changes to this project are documented here. The format is based on
-[Keep a Changelog](https://keepachangelog.com/) and the project follows
-[Semantic Versioning](https://semver.org/).
+## Unreleased
 
 ## [0.2.0] - 2026-06-23
 
-Capability expansion informed by a study of the leading open-source Unreal MCP
-projects (chongdashu, flopperam, remiphilippe, GenOrca, ChiR24). Grows the tool
-set from 62 to **97 tools** (32 core), all pure-Python.
-
 ### Added
+- Added a competitor-informed capability expansion that grows the tool set from
+  62 to **97 tools** (32 core), all pure-Python.
 - **Reflection** (`search_api`, `describe_class`, `list_enum_values`,
   `inspect_object`) — discover the real `unreal` API instead of guessing it.
 - **Viewport** (`set_viewport_camera`, `get_viewport_camera`, `focus_viewport`)
@@ -29,6 +25,15 @@ set from 62 to **97 tools** (32 core), all pure-Python.
 - Undo-transaction grouping for batch/procedural mutations; `run_console_command`
   safety denylist; `get_output_log` substring filtering; `take_screenshot`
   `show_ui` option; soft-dependency probes for optional plugins (Niagara, UMG).
+
+### Fixed
+- Fixed `list_layers` for Unreal versions where
+  `EditorLevelLibrary.add_all_layer_names_to()` takes no output argument.
+- Fixed Codex one-click TOML config updates so replacing the
+  `funplay-unreal` server also replaces its existing env child table, avoiding
+  stale tokens or duplicate TOML tables.
+- Fixed README tool-count copy so the default `core` and `full` profiles are
+  documented as 32 and 97 tools.
 
 ### Notes
 - Blueprint **event-graph node wiring** remains intentionally out of scope — every

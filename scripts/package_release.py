@@ -73,7 +73,10 @@ def extract_release_notes(version):
         r"^##\s*\[%s\].*?(?=^##\s*\[|\Z)" % re.escape(version), re.DOTALL | re.MULTILINE
     )
     match = pattern.search(changelog)
-    return match.group(0).strip() if match else "Release %s" % version
+    if not match:
+        return "Release %s" % version
+    notes = match.group(0).strip()
+    return re.sub(r"^##\s*\[%s\].*?\n+" % re.escape(version), "", notes, count=1)
 
 
 def sha256(path):
