@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (without leading v)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate
+        run: python3 scripts/validate_repo.py
+      - name: Package
+        run: python3 scripts/package_release.py --version "${{ steps.ver.outputs.version }}"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          DIR="dist/v$V"
+          if gh release view "v$V" >/dev/null 2>&1; then
+            gh release edit "v$V" --title "Funplay Unreal MCP v$V" --notes-file "$DIR/release-notes.md"
+            gh release upload "v$V" "$DIR"/* --clobber
+          else
+            gh release create "v$V" "$DIR"/* --title "Funplay Unreal MCP v$V" --notes-file "$DIR/release-notes.md"
+          fi

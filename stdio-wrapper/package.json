@@ -1,0 +1,36 @@
+{
+  "name": "funplay-unreal-mcp",
+  "version": "0.1.0",
+  "description": "stdio bridge for the local Unreal Editor MCP server from FunplayAI/funplay-unreal-mcp.",
+  "type": "module",
+  "license": "MIT",
+  "mcpName": "io.github.FunplayAI/funplay-unreal-mcp",
+  "bin": {
+    "funplay-unreal-mcp": "bin/funplay-unreal-mcp.js"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "unreal",
+    "unreal-engine",
+    "mcp",
+    "model-context-protocol",
+    "funplay",
+    "gamedev"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FunplayAI/funplay-unreal-mcp.git",
+    "directory": "stdio-wrapper"
+  },
+  "homepage": "https://github.com/FunplayAI/funplay-unreal-mcp",
+  "bugs": {
+    "url": "https://github.com/FunplayAI/funplay-unreal-mcp/issues"
+  }
+}

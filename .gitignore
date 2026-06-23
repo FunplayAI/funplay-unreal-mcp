@@ -1,0 +1,29 @@
+# Build / release artifacts
+dist/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Unreal generated (in case the plugin is tested inside a project)
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+.vs/
+*.VC.db
+*.opensdf
+*.sdf
+*.suo
+
+# MCP registry credentials (never commit)
+.mcpregistry_*
+
+# OS junk
+.DS_Store
+Thumbs.db

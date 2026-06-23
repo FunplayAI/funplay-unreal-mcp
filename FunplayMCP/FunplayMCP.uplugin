@@ -1,0 +1,28 @@
+{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "0.1.0",
+    "FriendlyName": "Funplay MCP for Unreal",
+    "Description": "In-editor MCP server that lets AI assistants drive the Unreal Editor through the embedded Python 'unreal' module.",
+    "Category": "Scripting",
+    "CreatedBy": "FunplayAI",
+    "CreatedByURL": "https://github.com/FunplayAI/funplay-unreal-mcp",
+    "DocsURL": "https://github.com/FunplayAI/funplay-unreal-mcp",
+    "MarketplaceURL": "",
+    "SupportURL": "https://github.com/FunplayAI/funplay-unreal-mcp/issues",
+    "CanContainContent": true,
+    "IsBetaVersion": true,
+    "Installed": false,
+    "EnabledByDefault": true,
+    "Modules": [],
+    "Plugins": [
+        {
+            "Name": "PythonScriptPlugin",
+            "Enabled": true
+        },
+        {
+            "Name": "EditorScriptingUtilities",
+            "Enabled": true
+        }
+    ]
+}

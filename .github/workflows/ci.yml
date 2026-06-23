@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate repository
+        run: python3 scripts/validate_repo.py
+      - name: Check the stdio bridge
+        run: node --check stdio-wrapper/bin/funplay-unreal-mcp.js
+      - name: Node bridge tests
+        run: node --test tests/*.test.js
+      - name: Editor-side tests (stubbed unreal)
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
