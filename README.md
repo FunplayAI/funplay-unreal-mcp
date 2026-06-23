@@ -33,6 +33,15 @@ do it.
 > lighting, enters Play-In-Editor, and returns a screenshot — all through this
 > MCP server.
 
+## Demo
+
+<p align="center">
+  <img src="./docs/assets/codex-to-unreal-castle-demo.gif" alt="Codex uses Funplay MCP to build a castle in Unreal Editor" width="900" />
+</p>
+
+Codex asks for a castle, Funplay MCP drives the Unreal Editor through MCP, and
+the finished scene appears directly in the editor.
+
 ## Quick Start
 
 Three things: **(1)** drop the plugin into your project, **(2)** enable it and

@@ -29,6 +29,15 @@ Play-In-Editor、截屏，或运行任意 `execute_python`*——然后让助手
 > 助手会检查关卡、生成并摆放 actor、设置灯光、进入 Play-In-Editor，并返回一张截图——全部
 > 通过这个 MCP 服务器完成。
 
+## 演示
+
+<p align="center">
+  <img src="./docs/assets/codex-to-unreal-castle-demo.gif" alt="Codex uses Funplay MCP to build a castle in Unreal Editor" width="900" />
+</p>
+
+Codex 提出搭建城堡的需求，Funplay MCP 通过 MCP 驱动 Unreal 编辑器执行，
+最终场景直接出现在编辑器里。
+
 ## 快速开始
 
 只需三步：**(1)** 把插件放进你的项目，**(2)** 启用它并
