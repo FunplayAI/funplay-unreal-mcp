@@ -3,12 +3,17 @@
 import unreal
 
 from .common import (
+    ROT3,
+    VEC3,
     actor_summary,
     component_summary,
+    parse_rotator,
+    parse_vector,
     prop,
     resolve_actor,
     resolve_class,
     schema,
+    transaction,
 )
 
 
@@ -155,6 +160,63 @@ def _set_material(args, ctx):
     return ctx.ok(actor_summary(actor))
 
 
+def _set_physics_properties(args, ctx):
+    try:
+        actor = resolve_actor(args.get("actor"))
+    except ValueError as exc:
+        return ctx.err(str(exc))
+    comp_name = args.get("component")
+    if comp_name:
+        comp = _find_component(actor, comp_name)
+    else:
+        comp = actor.get_component_by_class(unreal.PrimitiveComponent)
+    if comp is None:
+        return ctx.err("no PrimitiveComponent found on actor")
+    try:
+        if args.get("simulate_physics") is not None:
+            comp.set_simulate_physics(bool(args["simulate_physics"]))
+        if args.get("enable_gravity") is not None:
+            comp.set_enable_gravity(bool(args["enable_gravity"]))
+        if args.get("mass") is not None:
+            comp.set_mass_override_in_kg(unreal.Name("None"), float(args["mass"]), True)
+        if args.get("linear_damping") is not None:
+            comp.set_linear_damping(float(args["linear_damping"]))
+        if args.get("angular_damping") is not None:
+            comp.set_angular_damping(float(args["angular_damping"]))
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err("could not set physics property: %s" % exc)
+    return ctx.ok(actor_summary(actor))
+
+
+def _add_ism_instances(args, ctx):
+    try:
+        actor = resolve_actor(args.get("actor"))
+    except ValueError as exc:
+        return ctx.err(str(exc))
+    transforms = args.get("transforms")
+    if not isinstance(transforms, list) or not transforms:
+        return ctx.err("'transforms' must be a non-empty list of {location,rotation,scale}")
+    comp = actor.get_component_by_class(unreal.InstancedStaticMeshComponent)
+    if comp is None:
+        return ctx.err(
+            "actor has no InstancedStaticMeshComponent; add one first via add_component"
+        )
+    added = 0
+    try:
+        with transaction("Funplay: add ISM instances"):
+            for item in transforms:
+                xform = unreal.Transform(
+                    parse_vector(item.get("location")),
+                    parse_rotator(item.get("rotation")),
+                    parse_vector(item.get("scale"), (1.0, 1.0, 1.0)),
+                )
+                comp.add_instance(xform)
+                added += 1
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err("failed adding instances after %d: %s" % (added, exc))
+    return ctx.ok({"added": added, "instance_count": comp.get_instance_count()})
+
+
 def register(reg):
     _actor_ref = prop("string", "Actor label, object name, or full path.")
     reg.register(
@@ -245,6 +307,45 @@ def register(reg):
             required=["actor", "material_path"],
         ),
         _set_material,
+        profiles=("full",),
+        group="components",
+    )
+    reg.register(
+        "set_physics_properties",
+        "Configure physics on an actor's PrimitiveComponent: simulate_physics, "
+        "enable_gravity, mass (kg), linear_damping, angular_damping.",
+        schema(
+            {
+                "actor": _actor_ref,
+                "simulate_physics": prop("boolean", "Enable rigid-body simulation."),
+                "enable_gravity": prop("boolean", "Enable gravity."),
+                "mass": prop("number", "Mass override in kilograms."),
+                "linear_damping": prop("number", "Linear damping."),
+                "angular_damping": prop("number", "Angular damping."),
+                "component": prop("string", "Optional component name to target."),
+            },
+            required=["actor"],
+        ),
+        _set_physics_properties,
+        profiles=("full",),
+        group="components",
+    )
+    reg.register(
+        "add_ism_instances",
+        "Add instances to an actor's InstancedStaticMeshComponent (great for "
+        "crowds/foliage/scatter). One undoable transaction.",
+        schema(
+            {
+                "actor": _actor_ref,
+                "transforms": {
+                    "type": "array",
+                    "description": "List of {location, rotation, scale} per instance.",
+                    "items": {"type": "object"},
+                },
+            },
+            required=["actor", "transforms"],
+        ),
+        _add_ism_instances,
         profiles=("full",),
         group="components",
     )

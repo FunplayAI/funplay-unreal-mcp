@@ -66,7 +66,7 @@ def _build():
     tools_pkg.register_all(registry)
     handler = RequestHandler(
         settings, registry, _StubProvider(), _StubProvider(),
-        "Funplay MCP Server - Unreal", "0.1.0", "TestProject", "deadbeefdeadbeef",
+        "Funplay MCP Server - Unreal", "0.2.0", "TestProject", "deadbeefdeadbeef",
     )
     return registry, handler
 
@@ -79,12 +79,12 @@ class PluginTests(unittest.TestCase):
     def setUp(self):
         self.registry, self.handler = _build()
 
-    def test_registry_has_62_tools_25_core(self):
+    def test_registry_has_97_tools_32_core(self):
         names = self.registry.names()
-        self.assertEqual(len(names), 62)
-        self.assertEqual(len(set(names)), 62)
+        self.assertEqual(len(names), 97)
+        self.assertEqual(len(set(names)), 97)
         core = [n for n in names if "core" in self.registry.get(n)["profiles"]]
-        self.assertEqual(len(core), 25)
+        self.assertEqual(len(core), 32)
 
     def test_initialize(self):
         resp = self.handler.handle_request(_req("initialize"))
@@ -93,7 +93,7 @@ class PluginTests(unittest.TestCase):
 
     def test_tools_list_full_profile(self):
         resp = self.handler.handle_request(_req("tools/list"))
-        self.assertEqual(len(resp["result"]["tools"]), 62)
+        self.assertEqual(len(resp["result"]["tools"]), 97)
 
     def test_tools_call_get_tool_catalog(self):
         resp = self.handler.handle_request(

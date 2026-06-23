@@ -1,7 +1,7 @@
 {
     "FileVersion": 3,
-    "Version": 1,
-    "VersionName": "0.1.0",
+    "Version": 2,
+    "VersionName": "0.2.0",
     "FriendlyName": "Funplay MCP for Unreal",
     "Description": "In-editor MCP server that lets AI assistants drive the Unreal Editor through the embedded Python 'unreal' module.",
     "Category": "Scripting",

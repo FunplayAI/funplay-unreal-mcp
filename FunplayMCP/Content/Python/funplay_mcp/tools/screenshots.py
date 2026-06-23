@@ -12,6 +12,7 @@ from .common import prop, project_dir, schema
 def _take_screenshot(args, ctx):
     width = args.get("width", 1920)
     height = args.get("height", 1080)
+    show_ui = bool(args.get("show_ui", False))
     filename = args.get("filename") or "funplay_mcp_capture.png"
     if not filename.lower().endswith(".png"):
         filename += ".png"
@@ -25,7 +26,14 @@ def _take_screenshot(args, ctx):
                 os.remove(path)
             except OSError:
                 pass
-        unreal.AutomationLibrary.take_high_res_screenshot(int(width), int(height), path)
+        try:
+            unreal.AutomationLibrary.take_high_res_screenshot(
+                int(width), int(height), path, force_game_view=not show_ui
+            )
+        except TypeError:  # older binding without the keyword
+            unreal.AutomationLibrary.take_high_res_screenshot(
+                int(width), int(height), path
+            )
         return path
 
     try:
@@ -61,6 +69,9 @@ def register(reg):
             {
                 "width": prop("integer", "Capture width in pixels (default 1920)."),
                 "height": prop("integer", "Capture height in pixels (default 1080)."),
+                "show_ui": prop(
+                    "boolean", "Include editor UI/gizmos (default false = clean game view)."
+                ),
                 "filename": prop(
                     "string",
                     "Optional output filename (default 'funplay_mcp_capture.png'; "

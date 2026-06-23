@@ -191,6 +191,27 @@ def _asset_exists(args, ctx):
     return ctx.ok({"exists": exists, "path": asset_path})
 
 
+def _get_asset_references(args, ctx):
+    asset_path = args.get("asset_path")
+    if not asset_path:
+        return ctx.err("'asset_path' is required")
+    package = asset_path.split(".")[0]
+    try:
+        registry = unreal.AssetRegistryHelpers.get_asset_registry()
+        options = unreal.AssetRegistryDependencyOptions()
+        deps = registry.get_dependencies(package, options) or []
+        refs = registry.get_referencers(package, options) or []
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err(str(exc))
+    return ctx.ok(
+        {
+            "package": package,
+            "dependencies": [str(d) for d in deps],
+            "referencers": [str(r) for r in refs],
+        }
+    )
+
+
 def register(reg):
     reg.register(
         "list_assets",
@@ -316,6 +337,18 @@ def register(reg):
             required=["asset_path"],
         ),
         _asset_exists,
+        profiles=("core", "full"),
+        group="assets",
+    )
+    reg.register(
+        "get_asset_references",
+        "Get an asset's dependencies (what it uses) and referencers (what uses it) "
+        "from the asset registry -- check before renaming or deleting.",
+        schema(
+            {"asset_path": prop("string", "Content path of the asset.")},
+            required=["asset_path"],
+        ),
+        _get_asset_references,
         profiles=("core", "full"),
         group="assets",
     )

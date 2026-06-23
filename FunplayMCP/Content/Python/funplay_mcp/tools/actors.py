@@ -16,6 +16,7 @@ from .common import (
     resolve_actor,
     resolve_class,
     schema,
+    transaction,
 )
 
 
@@ -199,6 +200,56 @@ def _find_actors(args, ctx):
     return ctx.ok({"count": len(out), "actors": out})
 
 
+def _batch_spawn_actors(args, ctx):
+    items = args.get("actors")
+    if not isinstance(items, list) or not items:
+        return ctx.err("'actors' must be a non-empty list of spawn specs")
+    results = []
+    with transaction("Funplay: batch spawn"):
+        for index, item in enumerate(items):
+            try:
+                location = parse_vector(item.get("location"))
+                rotation = parse_rotator(item.get("rotation"))
+                if item.get("asset_path"):
+                    asset = unreal.EditorAssetLibrary.load_asset(item["asset_path"])
+                    if asset is None:
+                        raise ValueError("asset not found: %s" % item["asset_path"])
+                    if isinstance(asset, unreal.Blueprint):
+                        actor = actor_subsystem().spawn_actor_from_class(
+                            asset.generated_class(), location, rotation
+                        )
+                    else:
+                        actor = actor_subsystem().spawn_actor_from_object(
+                            asset, location, rotation
+                        )
+                else:
+                    actor = actor_subsystem().spawn_actor_from_class(
+                        resolve_class(item.get("class_name") or item.get("class")),
+                        location,
+                        rotation,
+                    )
+                if actor is None:
+                    raise ValueError("spawn returned None")
+                if item.get("label"):
+                    actor.set_actor_label(item["label"])
+                if item.get("scale") is not None:
+                    actor.set_actor_scale3d(parse_vector(item.get("scale"), (1.0, 1.0, 1.0)))
+                results.append(
+                    {
+                        "index": index,
+                        "success": True,
+                        "label": actor.get_actor_label(),
+                        "path": actor.get_path_name(),
+                    }
+                )
+            except Exception as exc:  # noqa: BLE001 -- collect per-item, don't abort
+                results.append({"index": index, "success": False, "error": str(exc)})
+    spawned = sum(1 for r in results if r["success"])
+    return ctx.ok(
+        {"spawned": spawned, "failed": len(results) - spawned, "results": results}
+    )
+
+
 def register(reg):
     _actor_ref = prop("string", "Actor label, object name, or full path.")
     reg.register(
@@ -329,5 +380,34 @@ def register(reg):
         schema({"query": prop("string", "Search substring.")}, required=["query"]),
         _find_actors,
         profiles=("core", "full"),
+        group="actors",
+    )
+    reg.register(
+        "batch_spawn_actors",
+        "Spawn many actors in one undoable transaction. Each spec accepts "
+        "class_name or asset_path, plus location/rotation/scale/label. Returns "
+        "per-item results (partial failures don't abort the batch).",
+        schema(
+            {
+                "actors": {
+                    "type": "array",
+                    "description": "List of spawn specs.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "class_name": prop("string", "Class name or path."),
+                            "asset_path": prop("string", "Asset content path."),
+                            "location": VEC3,
+                            "rotation": ROT3,
+                            "scale": VEC3,
+                            "label": prop("string", "Editor label."),
+                        },
+                    },
+                }
+            },
+            required=["actors"],
+        ),
+        _batch_spawn_actors,
+        profiles=("full",),
         group="actors",
     )

@@ -4,7 +4,7 @@ Keep these in sync with stdio-wrapper/package.json, server.json, FunplayMCP.uplu
 and the README tool counts (scripts/validate_repo.py enforces version sync)."""
 
 SERVER_NAME = "Funplay MCP Server - Unreal"
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = "0.2.0"
 
 # Networking -- loopback only, default port shared across the Funplay family.
 DEFAULT_HOST = "127.0.0.1"

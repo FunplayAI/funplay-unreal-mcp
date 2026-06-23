@@ -101,8 +101,8 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
   打包后的游戏一同发布。
 - **仅限回环地址。** 它绑定 `127.0.0.1` 并拒绝非回环的 Origin；POST
   请求需要每个项目的 auth token。
-- **默认 `core` 配置。** 默认暴露一组精选的 25 个工具；当你想要全部时，可在设置文件中切换
-  到 `full`（62 个工具）。
+- **默认 `core` 配置。** 默认暴露一组精选的 32 个工具；当你想要全部时，可在设置文件中切换
+  到 `full`（97 个工具）。
 - **`execute_python` 安全检查** 默认开启（一份文件系统/进程
   黑名单）；可按单次调用传入 `safety_checks=false` 来覆盖。
 - 所有 `unreal` API 操作都会被编排到游戏线程上，因此编辑器绝不会
@@ -111,7 +111,10 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
 ## 为什么做这个项目
 
 - **`execute_python` 优先。** 一个一等公民工具，可在编辑器中运行任意 Python——
-  那 61 个专用工具未覆盖的一切，你依然可以做到。
+  那 96 个专用工具未覆盖的一切，你依然可以做到。
+- **内置 API 发现。** `search_api` / `describe_class` / `inspect_object`
+  会读取内嵌 `unreal` 模块自身的文档，因此助手使用的是真实的
+  API，而不是凭空臆造。
 - **纯 Python，无需编译。** 没有 C++ 模块、没有编译步骤，可在 UE
   5.3–5.8 间通用。
 - **天生安全。** 开箱即带游戏线程编排、回环地址绑定、auth
@@ -122,7 +125,7 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
 
 ## 亮点
 
-- **62 个内置工具**（默认 `core` 配置暴露其中 25 个），分布在 13 个类别中。
+- **97 个内置工具**（默认 `core` 配置暴露其中 32 个），分布在 20 个类别中。
 - **MCP 资源**（`unreal://...`）覆盖项目、关卡、选择、日志和
   工具目录，外加面向常见工作流的 **prompt 模板**。
 - **结构化结果**——每个工具都返回助手可以推理的 JSON；
@@ -132,7 +135,7 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
 
 ## MCP 能力
 
-- **工具：** 62（25 core / 62 full）。
+- **工具：** 97（32 core / 97 full）。
 - **主执行方式：** `execute_python`——在编辑器中运行任意 Python 片段。
 - **Prompts：** `level_review`、`feature_plan`、`debug_runtime`、`blueprint_actor`。
 - **资源：** `unreal://project/context`、`unreal://project/info`、
@@ -140,7 +143,7 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
   `unreal://tools/catalog`、`unreal://logs/recent`、`unreal://interaction/history`，
   外加模板 `unreal://actor/{ref}` 和 `unreal://asset/{path}`。
 
-共 **62 个内置工具**（25 core / 62 full）。
+共 **97 个内置工具**（32 core / 97 full）。
 
 ## 与 Funplay MCP for Unity 对比
 
@@ -149,28 +152,35 @@ Code**（或 Cursor / VS Code / Codex）。它会写入填好
 | 编辑器侧 | 纯 Python 插件（无需编译） | C# 包 |
 | 主执行方式 | `execute_python`（内嵌 `unreal`） | `execute_code`（内存中 C#） |
 | 传输 | 本地 HTTP + stdio 桥接 | 本地 HTTP + stdio 桥接 |
-| 默认暴露 | `core` 配置（62 个中的 25 个） | `core` 配置 |
+| 默认暴露 | `core` 配置（97 个中的 32 个） | `core` 配置 |
 | 引擎版本 | UE 5.3–5.8 | Unity 2022.3+ |
 | 客户端配置 | 一键（Claude/Cursor/VS Code/Codex） | 一键 |
 
 ## 内置工具
 
-**62 个内置工具**（25 个 `core`）。调用 `get_tool_catalog` 获取实时列表。
+**97 个内置工具**（32 个 `core`）。调用 `get_tool_catalog` 获取实时列表。
 
 | 类别 | 工具 |
 |---|---|
 | Execution | `execute_python`, `run_console_command` |
-| Actors | `spawn_actor`, `spawn_actor_from_asset`, `destroy_actor`, `duplicate_actor`, `set_actor_transform`, `set_actor_label`, `set_actor_property`, `attach_actor`, `get_actor_info`, `list_actors`, `find_actors` |
-| Components | `add_component`, `list_components`, `get_component_properties`, `set_component_property`, `set_static_mesh`, `set_material` |
-| Assets | `list_assets`, `find_assets`, `get_asset_info`, `duplicate_asset`, `rename_asset`, `delete_asset`, `save_asset`, `import_asset`, `create_folder`, `asset_exists` |
+| Reflection | `search_api`, `describe_class`, `list_enum_values`, `inspect_object` |
+| Actors | `spawn_actor`, `spawn_actor_from_asset`, `destroy_actor`, `duplicate_actor`, `set_actor_transform`, `set_actor_label`, `set_actor_property`, `attach_actor`, `get_actor_info`, `list_actors`, `find_actors`, `batch_spawn_actors` |
+| Components | `add_component`, `list_components`, `get_component_properties`, `set_component_property`, `set_static_mesh`, `set_material`, `set_physics_properties`, `add_ism_instances` |
+| Assets | `list_assets`, `find_assets`, `get_asset_info`, `duplicate_asset`, `rename_asset`, `delete_asset`, `save_asset`, `import_asset`, `create_folder`, `asset_exists`, `get_asset_references` |
 | Blueprints | `create_blueprint`, `add_blueprint_component`, `compile_blueprint`, `get_blueprint_info`, `spawn_blueprint` |
-| Materials | `create_material`, `create_material_instance`, `set_material_instance_parameter`, `get_material_info` |
+| Materials | `create_material`, `create_material_instance`, `set_material_instance_parameter`, `get_material_info`, `add_material_expression`, `connect_material_expressions`, `connect_material_property`, `recompile_material` |
 | Levels | `new_level`, `load_level`, `save_current_level`, `save_all_dirty`, `get_level_info`, `list_levels` |
 | Play-In-Editor | `play_in_editor`, `stop_play_in_editor`, `simulate_in_editor`, `get_play_state` |
+| Viewport | `set_viewport_camera`, `get_viewport_camera`, `focus_viewport` |
 | Screenshots | `take_screenshot` |
 | Selection | `get_selection`, `set_selection`, `select_none`, `get_selected_assets` |
-| Editor State | `get_editor_state`, `get_project_info`, `get_output_log`, `sync_content_browser` |
+| Editor State | `get_editor_state`, `get_project_info`, `get_output_log`, `sync_content_browser`, `health_status`, `undo`, `redo` |
 | Files | `read_file`, `write_file`, `list_directory`, `file_exists` |
+| Procedural | `build_wall`, `build_floor`, `build_stairs`, `scatter_actors` |
+| Organization | `set_actor_folder`, `create_layer`, `add_actors_to_layer`, `list_layers` |
+| Data | `create_data_table`, `get_data_table`, `set_data_table_rows`, `export_data_table_csv` |
+| UMG | `create_widget_blueprint`, `add_widget`, `set_widget_property` |
+| Effects | `spawn_niagara_system`, `set_niagara_parameter` |
 | Discovery | `get_tool_catalog` |
 
 ## 仓库结构

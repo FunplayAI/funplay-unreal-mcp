@@ -1,6 +1,6 @@
 {
   "name": "funplay-unreal-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "stdio bridge for the local Unreal Editor MCP server from FunplayAI/funplay-unreal-mcp.",
   "type": "module",
   "license": "MIT",

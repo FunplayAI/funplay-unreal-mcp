@@ -104,10 +104,20 @@ def _execute_python(args, ctx):
     return ctx.ok(payload)
 
 
+_CONSOLE_DENYLIST = ("quit", "exit", "restarteditor", "debug crash", "rmdir", "del ")
+
+
 def _run_console_command(args, ctx):
     command = args.get("command")
     if not command:
         return ctx.err("'command' is required")
+    lowered = command.strip().lower()
+    if any(lowered == bad or lowered.startswith(bad + " ") or bad in lowered
+           for bad in _CONSOLE_DENYLIST):
+        return ctx.tool_error(
+            "CONSOLE_COMMAND_BLOCKED",
+            "Refusing a destructive console command: %s" % command,
+        )
     unreal.SystemLibrary.execute_console_command(editor_world(), command)
     return ctx.text("Executed console command: %s" % command)
 

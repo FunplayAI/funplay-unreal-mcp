@@ -3,11 +3,27 @@
 All functions here are called from tool handlers, which run on the game thread,
 so they may use ``unreal.*`` freely. JSON rendering lives in ``..context``."""
 
+import contextlib
 import os
 
 import unreal
 
 from ..context import json_safe, object_ref, to_json  # noqa: F401  (re-exported)
+
+
+# -- undo transactions -----------------------------------------------------
+def transaction(label):
+    """Group mutations into a single undoable unit.
+
+    Returns a context manager. Falls back to a no-op on engine versions that
+    don't expose ScopedEditorTransaction, so callers always apply their edits."""
+    cls = getattr(unreal, "ScopedEditorTransaction", None)
+    if cls is not None:
+        try:
+            return cls(label)
+        except Exception:  # noqa: BLE001
+            pass
+    return contextlib.nullcontext()
 
 
 # -- JSON schema builders --------------------------------------------------
@@ -185,3 +201,22 @@ def normalize_content_path(path):
     if not path.startswith("/"):
         path = "/Game/" + path
     return path.rstrip("/") or "/Game"
+
+
+# -- misc ------------------------------------------------------------------
+BASIC_SHAPES = {
+    "cube": "/Engine/BasicShapes/Cube",
+    "sphere": "/Engine/BasicShapes/Sphere",
+    "cylinder": "/Engine/BasicShapes/Cylinder",
+    "cone": "/Engine/BasicShapes/Cone",
+    "plane": "/Engine/BasicShapes/Plane",
+}
+
+
+def load_basic_shape(name):
+    """Load an engine basic-shape StaticMesh by friendly name or content path."""
+    path = BASIC_SHAPES.get((name or "cube").lower(), name)
+    mesh = unreal.EditorAssetLibrary.load_asset(path)
+    if mesh is None:
+        raise ValueError("could not load mesh: %s" % path)
+    return mesh

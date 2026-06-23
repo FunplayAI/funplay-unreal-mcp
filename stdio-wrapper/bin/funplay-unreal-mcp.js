@@ -8,7 +8,7 @@
 
 import { argv, env, exit, stderr, stdin, stdout } from "node:process";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const DEFAULT_URL = "http://127.0.0.1:8765/";
 
 function parseArgs(args) {

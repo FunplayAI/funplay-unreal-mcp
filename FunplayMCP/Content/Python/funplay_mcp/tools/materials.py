@@ -149,6 +149,105 @@ def _get_material_info(args, ctx):
     return ctx.ok(info)
 
 
+def _resolve_expression_class(name):
+    if not name:
+        raise ValueError("'expression_class' is required")
+    for candidate in (name, "MaterialExpression" + name):
+        cls = getattr(unreal, candidate, None)
+        if cls is not None:
+            return cls
+    raise ValueError("unknown material expression class: %s" % name)
+
+
+def _material_property_enum(name):
+    key = "MP_" + str(name).upper().replace("MP_", "")
+    enum = getattr(unreal.MaterialProperty, key, None)
+    if enum is None:
+        raise ValueError("unknown material property: %s" % name)
+    return enum
+
+
+def _add_material_expression(args, ctx):
+    material_path = args.get("material_path")
+    if not material_path:
+        return ctx.err("'material_path' is required")
+    try:
+        material = unreal.EditorAssetLibrary.load_asset(material_path)
+        if material is None:
+            return ctx.err("material not found: %s" % material_path)
+        cls = _resolve_expression_class(args.get("expression_class"))
+        expr = unreal.MaterialEditingLibrary.create_material_expression(
+            material, cls, int(args.get("node_x", 0)), int(args.get("node_y", 0))
+        )
+        if expr is None:
+            return ctx.err("failed to create expression")
+        for key, value in (args.get("properties") or {}).items():
+            try:
+                expr.set_editor_property(key, value)
+            except Exception:  # noqa: BLE001
+                pass
+        if args.get("connect_to_property"):
+            unreal.MaterialEditingLibrary.connect_material_property(
+                expr,
+                args.get("output", ""),
+                _material_property_enum(args["connect_to_property"]),
+            )
+        if args.get("recompile"):
+            unreal.MaterialEditingLibrary.recompile_material(material)
+        unreal.EditorAssetLibrary.save_loaded_asset(material)
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err(str(exc))
+    return ctx.ok({"expression": expr.get_name(), "path": expr.get_path_name()})
+
+
+def _connect_material_expressions(args, ctx):
+    try:
+        from_expr = unreal.load_object(None, args.get("from_path"))
+        to_expr = unreal.load_object(None, args.get("to_path"))
+        if from_expr is None or to_expr is None:
+            return ctx.err("could not resolve from_path/to_path expression objects")
+        unreal.MaterialEditingLibrary.connect_material_expressions(
+            from_expr, args.get("from_output", ""), to_expr, args.get("to_input", "")
+        )
+        material = unreal.EditorAssetLibrary.load_asset(args.get("material_path"))
+        if material is not None:
+            unreal.EditorAssetLibrary.save_loaded_asset(material)
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err(str(exc))
+    return ctx.text("Connected material expressions.")
+
+
+def _connect_material_property(args, ctx):
+    try:
+        expr = unreal.load_object(None, args.get("from_path"))
+        if expr is None:
+            return ctx.err("could not resolve from_path expression object")
+        unreal.MaterialEditingLibrary.connect_material_property(
+            expr, args.get("output", ""), _material_property_enum(args.get("property"))
+        )
+        material = unreal.EditorAssetLibrary.load_asset(args.get("material_path"))
+        if material is not None:
+            unreal.EditorAssetLibrary.save_loaded_asset(material)
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err(str(exc))
+    return ctx.text("Connected expression to material property.")
+
+
+def _recompile_material(args, ctx):
+    material_path = args.get("material_path")
+    if not material_path:
+        return ctx.err("'material_path' is required")
+    try:
+        material = unreal.EditorAssetLibrary.load_asset(material_path)
+        if material is None:
+            return ctx.err("material not found: %s" % material_path)
+        unreal.MaterialEditingLibrary.recompile_material(material)
+        unreal.EditorAssetLibrary.save_loaded_asset(material)
+    except Exception as exc:  # noqa: BLE001
+        return ctx.err(str(exc))
+    return ctx.text("Recompiled material: %s" % material_path)
+
+
 def register(reg):
     reg.register(
         "create_material",
@@ -223,5 +322,77 @@ def register(reg):
         ),
         _get_material_info,
         profiles=("core", "full"),
+        group="materials",
+    )
+    reg.register(
+        "add_material_expression",
+        "Add a node (expression) to a Material's graph; optionally set its properties "
+        "and wire its output to a material property (e.g. 'base_color'). Returns the "
+        "expression's durable object path for later connect calls.",
+        schema(
+            {
+                "material_path": prop("string", "Content path of the material."),
+                "expression_class": prop(
+                    "string", "Expression class, e.g. 'Constant3Vector', 'TextureSample', 'Multiply'."
+                ),
+                "node_x": prop("integer", "Graph X position (default 0)."),
+                "node_y": prop("integer", "Graph Y position (default 0)."),
+                "properties": {"type": "object", "description": "Editor properties to set on the node."},
+                "connect_to_property": prop(
+                    "string", "Optional material property to wire output into, e.g. 'base_color', 'metallic'."
+                ),
+                "output": prop("string", "Output pin name (default empty = first)."),
+                "recompile": prop("boolean", "Recompile after adding (default false)."),
+            },
+            required=["material_path", "expression_class"],
+        ),
+        _add_material_expression,
+        profiles=("full",),
+        group="materials",
+    )
+    reg.register(
+        "connect_material_expressions",
+        "Wire one material expression's output pin to another's input pin (use the "
+        "object paths returned by add_material_expression).",
+        schema(
+            {
+                "material_path": prop("string", "Content path of the material."),
+                "from_path": prop("string", "Source expression object path."),
+                "from_output": prop("string", "Source output pin name (default first)."),
+                "to_path": prop("string", "Target expression object path."),
+                "to_input": prop("string", "Target input pin name (default first)."),
+            },
+            required=["from_path", "to_path"],
+        ),
+        _connect_material_expressions,
+        profiles=("full",),
+        group="materials",
+    )
+    reg.register(
+        "connect_material_property",
+        "Wire a material expression's output to a material output property "
+        "(e.g. 'base_color', 'roughness', 'emissive_color').",
+        schema(
+            {
+                "material_path": prop("string", "Content path of the material."),
+                "from_path": prop("string", "Source expression object path."),
+                "output": prop("string", "Source output pin name (default first)."),
+                "property": prop("string", "Material property, e.g. 'base_color'."),
+            },
+            required=["from_path", "property"],
+        ),
+        _connect_material_property,
+        profiles=("full",),
+        group="materials",
+    )
+    reg.register(
+        "recompile_material",
+        "Recompile and save a Material after graph edits.",
+        schema(
+            {"material_path": prop("string", "Content path of the material.")},
+            required=["material_path"],
+        ),
+        _recompile_material,
+        profiles=("full",),
         group="materials",
     )

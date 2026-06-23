@@ -115,7 +115,10 @@ Ask your assistant to:
 ## Why This Project
 
 - **`execute_python` first.** A first-class tool that runs arbitrary Python in
-  the editor — anything the 61 dedicated tools don't cover, you can still do.
+  the editor — anything the 96 dedicated tools don't cover, you can still do.
+- **API discovery built in.** `search_api` / `describe_class` / `inspect_object`
+  read the embedded `unreal` module's own docs, so the assistant uses the real
+  API instead of hallucinating it.
 - **Pure Python, no build.** No C++ module, no compile step, portable across UE
   5.3–5.8.
 - **Safe by construction.** Game-thread marshalling, loopback binding, auth
@@ -126,7 +129,7 @@ Ask your assistant to:
 
 ## Highlights
 
-- **62 built-in tools** (25 in the default `core` profile) across 13 categories.
+- **97 built-in tools** (32 in the default `core` profile) across 20 categories.
 - **MCP resources** (`unreal://...`) for project, level, selection, logs, and the
   tool catalog, plus **prompt templates** for common workflows.
 - **Structured results** — every tool returns JSON the assistant can reason over;
@@ -136,7 +139,7 @@ Ask your assistant to:
 
 ## MCP Capabilities
 
-- **Tools:** 62 (25 core / 62 full).
+- **Tools:** 97 (32 core / 97 full).
 - **Primary execution:** `execute_python` — run any Python snippet in the editor.
 - **Prompts:** `level_review`, `feature_plan`, `debug_runtime`, `blueprint_actor`.
 - **Resources:** `unreal://project/context`, `unreal://project/info`,
@@ -151,28 +154,35 @@ Ask your assistant to:
 | Editor side | Pure-Python plugin (no build) | C# package |
 | Primary execution | `execute_python` (embedded `unreal`) | `execute_code` (in-memory C#) |
 | Transport | Local HTTP + stdio bridge | Local HTTP + stdio bridge |
-| Default exposure | `core` profile (25 of 62) | `core` profile |
+| Default exposure | `core` profile (32 of 97) | `core` profile |
 | Engine versions | UE 5.3–5.8 | Unity 2022.3+ |
 | Client config | One-click (Claude/Cursor/VS Code/Codex) | One-click |
 
 ## Built-in Tools
 
-**62 built-in tools** (25 `core`). Call `get_tool_catalog` for the live list.
+**97 built-in tools** (32 `core`). Call `get_tool_catalog` for the live list.
 
 | Category | Tools |
 |---|---|
 | Execution | `execute_python`, `run_console_command` |
-| Actors | `spawn_actor`, `spawn_actor_from_asset`, `destroy_actor`, `duplicate_actor`, `set_actor_transform`, `set_actor_label`, `set_actor_property`, `attach_actor`, `get_actor_info`, `list_actors`, `find_actors` |
-| Components | `add_component`, `list_components`, `get_component_properties`, `set_component_property`, `set_static_mesh`, `set_material` |
-| Assets | `list_assets`, `find_assets`, `get_asset_info`, `duplicate_asset`, `rename_asset`, `delete_asset`, `save_asset`, `import_asset`, `create_folder`, `asset_exists` |
+| Reflection | `search_api`, `describe_class`, `list_enum_values`, `inspect_object` |
+| Actors | `spawn_actor`, `spawn_actor_from_asset`, `destroy_actor`, `duplicate_actor`, `set_actor_transform`, `set_actor_label`, `set_actor_property`, `attach_actor`, `get_actor_info`, `list_actors`, `find_actors`, `batch_spawn_actors` |
+| Components | `add_component`, `list_components`, `get_component_properties`, `set_component_property`, `set_static_mesh`, `set_material`, `set_physics_properties`, `add_ism_instances` |
+| Assets | `list_assets`, `find_assets`, `get_asset_info`, `duplicate_asset`, `rename_asset`, `delete_asset`, `save_asset`, `import_asset`, `create_folder`, `asset_exists`, `get_asset_references` |
 | Blueprints | `create_blueprint`, `add_blueprint_component`, `compile_blueprint`, `get_blueprint_info`, `spawn_blueprint` |
-| Materials | `create_material`, `create_material_instance`, `set_material_instance_parameter`, `get_material_info` |
+| Materials | `create_material`, `create_material_instance`, `set_material_instance_parameter`, `get_material_info`, `add_material_expression`, `connect_material_expressions`, `connect_material_property`, `recompile_material` |
 | Levels | `new_level`, `load_level`, `save_current_level`, `save_all_dirty`, `get_level_info`, `list_levels` |
 | Play-In-Editor | `play_in_editor`, `stop_play_in_editor`, `simulate_in_editor`, `get_play_state` |
+| Viewport | `set_viewport_camera`, `get_viewport_camera`, `focus_viewport` |
 | Screenshots | `take_screenshot` |
 | Selection | `get_selection`, `set_selection`, `select_none`, `get_selected_assets` |
-| Editor State | `get_editor_state`, `get_project_info`, `get_output_log`, `sync_content_browser` |
+| Editor State | `get_editor_state`, `get_project_info`, `get_output_log`, `sync_content_browser`, `health_status`, `undo`, `redo` |
 | Files | `read_file`, `write_file`, `list_directory`, `file_exists` |
+| Procedural | `build_wall`, `build_floor`, `build_stairs`, `scatter_actors` |
+| Organization | `set_actor_folder`, `create_layer`, `add_actors_to_layer`, `list_layers` |
+| Data | `create_data_table`, `get_data_table`, `set_data_table_rows`, `export_data_table_csv` |
+| UMG | `create_widget_blueprint`, `add_widget`, `set_widget_property` |
+| Effects | `spawn_niagara_system`, `set_niagara_parameter` |
 | Discovery | `get_tool_catalog` |
 
 ## Repository Layout
