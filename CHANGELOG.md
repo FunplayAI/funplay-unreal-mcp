@@ -5,40 +5,17 @@
 ## [0.2.0] - 2026-06-23
 
 ### Added
-- Added a competitor-informed capability expansion that grows the tool set from
-  62 to **97 tools** (32 core), all pure-Python.
-- **Reflection** (`search_api`, `describe_class`, `list_enum_values`,
-  `inspect_object`) — discover the real `unreal` API instead of guessing it.
-- **Viewport** (`set_viewport_camera`, `get_viewport_camera`, `focus_viewport`)
-  — deterministic "aim then screenshot" loop.
-- **Procedural builders** (`build_wall`, `build_floor`, `build_stairs`,
-  `scatter_actors`) — whole structures from one prompt, in one undo.
-- **Material graph editing** (`add_material_expression`,
-  `connect_material_expressions`, `connect_material_property`,
-  `recompile_material`).
-- **DataTables** (`create_data_table`, `get_data_table`, `set_data_table_rows`,
-  `export_data_table_csv`), **UMG** (`create_widget_blueprint`, `add_widget`,
-  `set_widget_property`), **Niagara** (`spawn_niagara_system`,
-  `set_niagara_parameter`), **organization** (`set_actor_folder`, layers).
-- `batch_spawn_actors`, `set_physics_properties`, `add_ism_instances`,
-  `get_asset_references`, `health_status`, `undo`/`redo`.
-- Undo-transaction grouping for batch/procedural mutations; `run_console_command`
-  safety denylist; `get_output_log` substring filtering; `take_screenshot`
-  `show_ui` option; soft-dependency probes for optional plugins (Niagara, UMG).
+- Expanded the Unreal tool set from 62 to 97 tools, with 32 exposed in the default `core` profile.
+- Added API discovery, viewport control, procedural builders, material graph editing, DataTables, UMG, Niagara, organization, instancing, asset-reference lookup, health checks, undo/redo, output-log filtering, screenshot UI capture, and optional-plugin probes.
+- Added undo-transaction grouping for batch and procedural mutations, plus a safety denylist for console commands.
 
 ### Fixed
-- Fixed `list_layers` for Unreal versions where
-  `EditorLevelLibrary.add_all_layer_names_to()` takes no output argument.
-- Fixed Codex one-click TOML config updates so replacing the
-  `funplay-unreal` server also replaces its existing env child table, avoiding
-  stale tokens or duplicate TOML tables.
-- Fixed README tool-count copy so the default `core` and `full` profiles are
-  documented as 32 and 97 tools.
+- Fixed `list_layers` on Unreal versions where `EditorLevelLibrary.add_all_layer_names_to()` takes no output argument.
+- Fixed Codex one-click TOML config updates so the existing `funplay-unreal` env table is replaced instead of leaving stale tokens or duplicate tables.
+- Fixed README tool-count copy for the 32-tool `core` profile and 97-tool `full` profile.
 
 ### Notes
-- Blueprint **event-graph node wiring** remains intentionally out of scope — every
-  competitor needs a C++ helper for it (the K2 graph API is not exposed to
-  Python). Blueprint support stays structure + components + CDO defaults + compile.
+- Blueprint event-graph node wiring remains out of scope because the K2 graph API is not exposed to Python; Blueprint support covers structure, components, CDO defaults, and compile.
 
 ## [0.1.0] - 2026-06-23
 

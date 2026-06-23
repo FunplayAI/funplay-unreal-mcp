@@ -39,8 +39,8 @@ jobs:
           V="${{ steps.ver.outputs.version }}"
           DIR="dist/v$V"
           if gh release view "v$V" >/dev/null 2>&1; then
-            gh release edit "v$V" --title "Funplay Unreal MCP v$V" --notes-file "$DIR/release-notes.md"
+            gh release edit "v$V" --title "v$V" --notes-file "$DIR/release-notes.md"
             gh release upload "v$V" "$DIR"/* --clobber
           else
-            gh release create "v$V" "$DIR"/* --title "Funplay Unreal MCP v$V" --notes-file "$DIR/release-notes.md"
+            gh release create "v$V" "$DIR"/* --title "v$V" --notes-file "$DIR/release-notes.md"
           fi
