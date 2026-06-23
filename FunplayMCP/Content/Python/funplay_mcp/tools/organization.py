@@ -102,8 +102,8 @@ def _list_layers(args, ctx):
     names = None
     try:
         if hasattr(layers, "add_all_layer_names_to"):
-            out = unreal.Array(unreal.Name)
-            layers.add_all_layer_names_to(out)
+            # UE5 exposes the C++ out-param as a return value (no argument).
+            out = layers.add_all_layer_names_to()
             names = [str(n) for n in out]
         elif hasattr(layers, "get_all_layers"):
             names = [
